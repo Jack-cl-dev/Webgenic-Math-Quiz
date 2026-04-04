@@ -1,4 +1,5 @@
-﻿void Quiz() //Option A
+﻿// TODO: Add input pauses and clear the terminal when required. 
+List<ScoreEntry> Quiz() //Option A
 {
     Console.WriteLine("Enter your name:");
     string name = Console.ReadLine() ?? throw new InvalidOperationException();
@@ -12,47 +13,36 @@
 
     for (int i = 0; i < 10; i++)
     {
-        questions[i].QuestionDisplay(i + 1); //TODO: This is not ready for handle doubles
+        questions[i].QuestionDisplay(i + 1); 
         var ui = Console.ReadLine();
-        try // Filthy. 
+        if (ui == "x")
         {
-            char answerChar = Convert.ToChar(ui);
-            if (answerChar == 'x')
+            break;
+        }
+        else if (double.TryParse(ui, out double userInput))
+        {
+            if (Math.Round(userInput, 2) == Math.Round(questions[i].Answer, 2)) //Not sure who decided we needed division, but it's not my fault that it makes the quizzes hard. 
             {
-                break;
+                score++;
             }
         }
-        catch
+        else
         {
-            try
-            {
-               int answer = Convert.ToInt32(ui);
-               if (answer == questions[i].Answer)
-               {
-                   Console.WriteLine("[DEBUG] Correct answer");
-                   Console.WriteLine(questions[i].Answer);
-                   score++;
-               }
-            }
-            catch (Exception)
-            {
-                Console.WriteLine("Invalid input. Press any key to try again.");
-                Console.ReadLine();
-                i--;
-                continue;
-            }
+            Console.WriteLine("Invalid input. Please enter a number.");
         }
     }
-    Console.WriteLine($"Your score is {score} out of ten.");
+    Console.WriteLine($"Your score is {score}/10");
     
     // The 2 lines of code below are for the high-score table, which I've used in place of the aray which the task asks for. 
-    // Now, If it is absolutely essential that for the task i use an array, let me know and I'll change it.
+    // Now, if it is absolutely essential that for the task i use an array, let me know and I'll change it.
     // But you should be aware that it's not the right tool for this job, and will result in some fragility. 
+    
     var todaysScores = new List<ScoreEntry>(); 
     todaysScores.Add(new ScoreEntry(name, score));
+    return todaysScores;
 }
 
-void MainMenu()
+void MainMenu(List<ScoreEntry> scoreData)
 {
     string headingText = "Welcome to the Math's Quiz Game. Please choose from the menu below";
     string underline = new string('_', headingText.Length);
@@ -64,51 +54,48 @@ void MainMenu()
                            (B) View Today's High Scores
                            (C) View Past High Scores
                            (D) Quit
-                           
-                       What would you like to do? Enter the letter option.
+
+                           What would you like to do? Enter the letter option.
                        """);
-    try
+
+    string userInputString = Console.ReadLine() ?? throw new InvalidOperationException();
+    userInputString = userInputString.ToUpper();
+    char userInputChar = Convert.ToChar(userInputString);
+
+    if (userInputChar == 'A')
     {
-        string userInputString = Console.ReadLine() ?? throw new InvalidOperationException();
-        userInputString = userInputString.ToUpper();
-        char userInputChar = Convert.ToChar(userInputString);
-        if (userInputChar == 'A')
-        {
-            Quiz();
-        }
-        else if (userInputChar == 'B')
-        {
-            
-        }
-        else if (userInputChar == 'C')
-        {
-            
-        }
-        else if (userInputChar == 'D')
-        {
-            
-        }
-        else
-        {
-            throw new Exception();
-        }
+        scoreData = Quiz();
+        MainMenu(scoreData);
     }
-    catch
+    else if (userInputChar == 'B')
     {
-        Console.WriteLine("Invalid input. Press any key to try again.");
-        Console.ReadLine();
-        MainMenu();
+        printScores(scoreData);
+        Console.WriteLine("Press any key to return to the main menu.");
+        Console.ReadKey();
+        MainMenu(scoreData);
+    }
+    // ...
+}
+
+{
+    MainMenu(null);
+}
+
+void printScores(List<ScoreEntry> scores) //Option B
+{
+    foreach (var score in scores)
+    {
+        Console.WriteLine($"{score.Name} - {score.Score}");
     }
 }
-MainMenu();
 
 public class Question
     {
-        public int NumberA { get;}
-        public int NumberB { get;}
-        public char Operator { get;}
-        public int Answer { get; set; }
-        public string Equation => $"{NumberA} {Operator} {NumberB}";
+        private int NumberA { get;}
+        private int NumberB { get;}
+        private char Operator { get;}
+        public double Answer { get; }
+        private string Equation => $"{NumberA} {Operator} {NumberB}";
         private static Random _random = new Random();
 
         public Question()
@@ -124,7 +111,7 @@ public class Question
                 '+' => NumberA + NumberB,
                 '-' => NumberA - NumberB,
                 '*' => NumberA * NumberB,
-                '/' => NumberA / NumberB, //TODO: Convert A and B to doubles in the case of a division, then round. Also specify to the user a DP for these questions so we can mark. 
+                '/' => Convert.ToDouble(NumberA) / Convert.ToDouble(NumberB), //TODO: Convert A and B to doubles in the case of a division, then round. Also specify to the user a DP for these questions so we can mark. 
                 _ => throw new ArgumentOutOfRangeException()
             };
 
