@@ -12,6 +12,9 @@ rather quickly in person. In other words, I'd rather only resubmit work that is 
 Thank you.
 */
 
+using System.Globalization;
+
+TextInfo myTI = new CultureInfo("en-AU",false).TextInfo; //This is for use in the title case operation
 string recordFile = "highScores.txt"; // Stores the high-score history in a simple text file.
 
 List<ScoreEntry> Quiz() //Option A
@@ -19,8 +22,12 @@ List<ScoreEntry> Quiz() //Option A
     Console.Clear();
 
     Console.WriteLine("Enter your name:");
-    string name = Console.ReadLine() ?? throw new InvalidOperationException();
-
+    string name = myTI.ToTitleCase(myTI.ToLower(Console.ReadLine() ?? throw new InvalidOperationException())); 
+    debug : Console.WriteLine(name);
+    //So, you might be wondering why we convert to lower, then titlecase. 
+    //It's because the titlecase operation intentionally leaves words that are entirely uppercase alone, assuming them to be acronyms. 
+    //While entirely reasonable in 99 percent of use cases, this edge case calls for an extra operation.
+    
     Console.Clear();
 
     int score = 0;
