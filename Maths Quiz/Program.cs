@@ -23,10 +23,9 @@ List<ScoreEntry> Quiz() //Option A
 
     Console.WriteLine("Enter your name:");
     string name = myTI.ToTitleCase(myTI.ToLower(Console.ReadLine() ?? throw new InvalidOperationException())); 
-    debug : Console.WriteLine(name);
     //So, you might be wondering why we convert to lower, then titlecase. 
     //It's because the titlecase operation intentionally leaves words that are entirely uppercase alone, assuming them to be acronyms. 
-    //While entirely reasonable in 99 percent of use cases, this edge case calls for an extra operation.
+    //While entirely reasonable in 99 per cent of use cases, this edge case calls for an extra operation.
     
     Console.Clear();
 
@@ -108,7 +107,7 @@ void MainMenu(List<ScoreEntry> scoreData)
                            (C) View Past High Scores
                            (D) Quit
 
-                           What would you like to do? Enter the letter option.
+                       What would you like to do? Enter the letter option.
                        """);
 
     string userInputString = Console.ReadLine() ?? throw new InvalidOperationException();
