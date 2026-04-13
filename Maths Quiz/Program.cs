@@ -14,7 +14,7 @@ Thank you.
 
 using System.Globalization;
 
-TextInfo myTI = new CultureInfo("en-AU",false).TextInfo; //This is for use in the title case operation
+TextInfo textInfo = new CultureInfo("en-AU",false).TextInfo; //This is for use in the title case operation
 string recordFile = "highScores.txt"; // Stores the high-score history in a simple text file.
 
 List<ScoreEntry> Quiz() //Option A
@@ -22,7 +22,7 @@ List<ScoreEntry> Quiz() //Option A
     Console.Clear();
 
     Console.WriteLine("Enter your name:");
-    string name = myTI.ToTitleCase(myTI.ToLower(Console.ReadLine() ?? throw new InvalidOperationException())); 
+    string name = textInfo.ToTitleCase(textInfo.ToLower(Console.ReadLine() ?? throw new InvalidOperationException())); 
     //So, you might be wondering why we convert to lower, then titlecase. 
     //It's because the titlecase operation intentionally leaves words that are entirely uppercase alone, assuming them to be acronyms. 
     //While entirely reasonable in 99 per cent of use cases, this edge case calls for an extra operation.
@@ -140,19 +140,28 @@ void MainMenu(List<ScoreEntry> scoreData)
     }
     else if (userInputChar == 'C')
     {
-        Console.Clear();
 
-        // This reads every saved score line back from the file and prints them out.
-        string[] fileContents = File.ReadAllLines(recordFile); //This was temporary, but the display actually looks clean enough to just leave it. 
-        foreach (var line in fileContents)
+        try
         {
-            Console.WriteLine(line);
+            Console.Clear();
+            // This reads every saved score line back from the file and prints them out.
+            string[] fileContents = File.ReadAllLines(recordFile); //This was temporary, but the display actually looks clean enough to just leave it. 
+            foreach (var line in fileContents)
+            {
+                Console.WriteLine(line);
+            }
+            Console.WriteLine();
+            Console.WriteLine("Press Enter to return to the main menu.");
+            Console.ReadLine();
+            MainMenu(scoreData);
         }
-
-        Console.WriteLine();
-        Console.WriteLine("Press Enter to return to the main menu.");
-        Console.ReadLine();
-        MainMenu(scoreData);
+        catch (Exception)
+        {
+            Console.WriteLine("There are no scores to display.");
+            Console.WriteLine("Press Enter to return to the main menu.");
+            Console.ReadLine();
+            MainMenu(scoreData);
+        }
     }
     else if (userInputChar == 'D')
     {
