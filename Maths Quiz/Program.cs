@@ -14,13 +14,14 @@ Thank you.
 
 using System.Globalization;
 
+
 TextInfo textInfo = new CultureInfo("en-AU",false).TextInfo; //This is for use in the title case operation
 string recordFile = "highScores.txt"; // Stores the high-score history in a simple text file.
+var scoreData = new List<ScoreEntry>();
 
-List<ScoreEntry> Quiz() //Option A
+void Quiz() //Option A
 {
     Console.Clear();
-
     Console.WriteLine("Enter your name:");
     string name = textInfo.ToTitleCase(textInfo.ToLower(Console.ReadLine() ?? throw new InvalidOperationException())); 
     //So, you might be wondering why we convert to lower, then titlecase. 
@@ -44,32 +45,25 @@ List<ScoreEntry> Quiz() //Option A
         var ui = Console.ReadLine();
 
         // Typing x lets the player exit the quiz early.
-        if (ui == "x")
+        if (ui?.ToLower() == "x")
         {
             break;
         }
-
-        bool uiIsValid = false;
-        while (!uiIsValid) //This feels like a terrible way to do this, but it works, and I am too out of practice in C# to identify the better way. 
+        
+        while (true)
         {
             if (double.TryParse(ui, out double userInput))
             {
                 // Round both values so tiny decimal differences do not break the answer check.
-                if (Math.Abs(Math.Round(userInput, 2) - Math.Round(questions[i].Answer, 2)) < 1) //Not sure who decided we needed division, but it's not my fault that it makes the quizzes hard. 
+                if (Math.Abs(Math.Round(userInput, 2) - Math.Round(questions[i].Answer, 2)) < 0.01) //Not sure who decided we needed division, but it's not my fault that it makes the quizzes hard. 
                 {
                     score++;
-                    uiIsValid = true;
                 }
-                else
-                {
-                    uiIsValid = true;
-                }
+                break;
             }
-            else
-            {
-                Console.WriteLine("Invalid input. Please enter a number.");
-                ui = Console.ReadLine();
-            }
+            
+            Console.WriteLine("Invalid input. Please enter a number.");
+            ui = Console.ReadLine();
         }
     }
 
@@ -86,98 +80,103 @@ List<ScoreEntry> Quiz() //Option A
     I'd really rather not refactor it, though.
     */
     
-    var scoreEntries = new List<ScoreEntry> { new(name, score) };
+    scoreData.Add(new ScoreEntry(name, score));
     File.AppendAllText(recordFile, $"{name} - {score}{Environment.NewLine}");
-    return scoreEntries;
 }
 
-void MainMenu(List<ScoreEntry> scoreData)
+void MainMenu()
 {
-    Console.Clear();
-
-    string headingText = "Welcome to the Math's Quiz Game. Please choose from the menu below";
-    string underline = new string('_', headingText.Length);
-
-    Console.WriteLine($"""
-                       {headingText}
-                       {underline}
-
-                           (A) New Game
-                           (B) View Today's High Scores
-                           (C) View Past High Scores
-                           (D) Quit
-
-                       What would you like to do? Enter the letter option.
-                       """);
-
-    string userInputString = Console.ReadLine() ?? throw new InvalidOperationException();
-    userInputString = userInputString.ToUpper();
-    char userInputChar = Convert.ToChar(userInputString);
-
-    if (userInputChar == 'A')
-    {
-        scoreData = Quiz();
-        MainMenu(scoreData);
-    }
-    else if (userInputChar == 'B')
+    while (true)
     {
         Console.Clear();
-        try
-        {
-            PrintScores(scoreData);
-            Console.WriteLine();
-            Console.WriteLine("Press Enter to return to the main menu.");
-            Console.ReadLine();
-            MainMenu(scoreData);
-        }
-        catch (Exception)
-        {
-            Console.WriteLine("There are no scores to display.");
-            Console.WriteLine("Press Enter to return to the main menu.");
-            Console.ReadLine();
-            MainMenu(scoreData);
-        }
-    }
-    else if (userInputChar == 'C')
-    {
 
-        try
+        string headingText = "Welcome to the Math's Quiz Game. Please choose from the menu below";
+        string underline = new string('_', headingText.Length);
+
+        Console.WriteLine($"""
+                           {headingText}
+                           {underline}
+
+                               (A) New Game
+                               (B) View Today's High Scores
+                               (C) View Past High Scores
+                               (D) Quit
+
+                           What would you like to do? Enter the letter option.
+                           """);
+        
+        string userInputString = Console.ReadLine() ?? throw new InvalidOperationException();
+        if (string.IsNullOrWhiteSpace(userInputString) || userInputString.Length > 1)
+        {
+            userInputString = "X";
+        }
+        userInputString = userInputString.ToUpper();
+        char userInputChar = userInputString[0];
+
+        if (userInputChar == 'A')
+        {
+            Quiz();
+        }
+        else if (userInputChar == 'B')
         {
             Console.Clear();
-            // This reads every saved score line back from the file and prints them out.
-            string[] fileContents = File.ReadAllLines(recordFile); //This was temporary, but the display actually looks clean enough to just leave it. 
-            foreach (var line in fileContents)
+            try
             {
-                Console.WriteLine(line);
+                if (scoreData.Count == 0)
+                {
+                    throw new Exception(); // I know I'm not supposed to do this, but it works, and too well for me to bother changing it.
+                }
+                PrintScores(scoreData);
+                Console.WriteLine();
+                Console.WriteLine("Press Enter to return to the main menu.");
+                Console.ReadLine();
             }
-            Console.WriteLine();
-            Console.WriteLine("Press Enter to return to the main menu.");
-            Console.ReadLine();
-            MainMenu(scoreData);
+            catch (Exception)
+            {
+                Console.WriteLine("There are no scores to display.");
+                Console.WriteLine("Press Enter to return to the main menu.");
+                Console.ReadLine();
+            }
         }
-        catch (Exception)
+        else if (userInputChar == 'C')
         {
-            Console.WriteLine("There are no scores to display.");
-            Console.WriteLine("Press Enter to return to the main menu.");
-            Console.ReadLine();
-            MainMenu(scoreData);
+
+            try
+            {
+
+                Console.Clear();
+                // This reads every saved score line back from the file and prints them out.
+                string[] fileContents = File.ReadAllLines(recordFile); //This was temporary, but the display actually looks clean enough to just leave it. 
+                foreach (var line in fileContents)
+                {
+                    Console.WriteLine(line);
+                }
+                
+                Console.WriteLine("\nPress Enter to return to the main menu.");
+                Console.ReadLine();
+            }
+            catch (Exception)
+            {
+                Console.WriteLine("There are no scores to display.");
+                Console.WriteLine("Press Enter to return to the main menu.");
+                Console.ReadLine();
+            }
         }
-    }
-    else if (userInputChar == 'D')
-    {
-        Console.Clear();
-        Environment.Exit(0);
-    }
-    else
-    {
-        Console.WriteLine("Invalid input. Please enter a valid option.");
-        Console.WriteLine("Press Enter to continue.");
-        Console.ReadLine();
-        MainMenu(scoreData);
+        else if (userInputChar == 'D')
+        {
+            Console.Clear();
+            Environment.Exit(0);
+        }
+        else
+        {
+            Console.WriteLine("Invalid input. Please enter a valid option.");
+            Console.WriteLine("Press Enter to continue.");
+            Console.ReadLine();
+        }
     }
 }
 
-MainMenu(null!);
+MainMenu();
 
 
 void PrintScores(List<ScoreEntry> scores) //Option B
